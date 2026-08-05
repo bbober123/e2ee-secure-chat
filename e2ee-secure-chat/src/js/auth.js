@@ -153,16 +153,18 @@ export class AuthManager {
         // Wymaga pobrania konwersacji w fake mode, zostawimy to do implementacji warstwy UI / DB
     }
 
-    static logout() {
+    static async logout() {
         keyManager.clearMemory();
         window.APP_MODE = null;
         window.CURRENT_USER = null;
         this.clearAutoLockTimer();
         sessionStorage.removeItem('lastUserEmail');
-        supabase.auth.signOut();
+        localStorage.removeItem('securechat_device_id');
+        await supabase.auth.signOut();
         
         const lockScreen = document.getElementById('lock-screen');
-        if (lockScreen) lockScreen.style.display = 'flex';
+        if (lockScreen) lockScreen.style.display = 'none';
+        
         // Reset do ekranu logowania
         window.location.reload();
     }
