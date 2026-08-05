@@ -68,8 +68,7 @@ export class AuthManager {
             user_id: userId,
             device_fingerprint: fingerprint,
             encrypted_private_key_real: vaultData.deviceRecord.encrypted_private_key_real,
-            encrypted_private_key_fake: vaultData.deviceRecord.encrypted_private_key_fake,
-            trusted: true
+            encrypted_private_key_fake: vaultData.deviceRecord.encrypted_private_key_fake
         });
 
         if (deviceError) throw deviceError;
@@ -89,7 +88,7 @@ export class AuthManager {
 
         sessionStorage.setItem('lastUserEmail', email);
 
-        // Pobierz fingerprint i sprawdź czy urządzenie istnieje
+        // Pobierz fingerprint
         const fingerprint = await this.generateDeviceFingerprint();
         const userId = authData.user.id;
 
@@ -101,13 +100,32 @@ export class AuthManager {
             .single();
 
         if (fetchError || !deviceRecord) {
-            // Jeśli urządzenie nie istnieje w bazie, w pełnej wersji wymagałoby to synchronizacji kluczy.
-            // Dla uproszczenia (zgodnie z promptem) można utworzyć nowe, ale wymagałoby to dostępu 
-            // do kluczy z innego urządzenia. Rzucamy błąd.
-            throw new Error("Nieznane urządzenie. Zaloguj się z zaufanego urządzenia.");
+            // Jeśli urządzenie nie istnieje (nowe urządzenie), pobierz dowolne inne urządzenie użytkownika
+            let { data: anyDevice, error: anyDeviceError } = await supabase
+                .from('devices')
+                .select('*, users!inner(salt_real, salt_fake)')
+                .eq('user_id', userId)
+                .limit(1)
+                .single();
+
+            if (anyDeviceError || !anyDevice) {
+                throw new Error("Brak kluczy szyfrujących dla tego konta.");
+            }
+
+            // Utwórz nowy rekord urządzenia (zapisz nowe urządzenie jako "zaufane" używając tych samych zaszyfrowanych kluczy)
+            const { error: insertError } = await supabase.from('devices').insert({
+                user_id: userId,
+                device_fingerprint: fingerprint,
+                encrypted_private_key_real: anyDevice.encrypted_private_key_real,
+                encrypted_private_key_fake: anyDevice.encrypted_private_key_fake,
+            });
+
+            if (insertError) throw new Error("Błąd podczas rejestrowania nowego urządzenia.");
+
+            deviceRecord = anyDevice;
         }
 
-        // Odblokuj klucze (tu zadziała REAL klucz)
+        // Odblokuj klucze
         const unlockResult = await keyManager.unlockDevice(userId, password, fingerprint, deviceRecord);
         
         window.APP_MODE = unlockResult.mode;
@@ -131,7 +149,8 @@ export class AuthManager {
             .single();
 
         if (fetchError || !deviceRecord) {
-            throw new Error("Urządzenie nie jest zarejestrowane.");
+            this.logout();
+            throw new Error("Urządzenie nie jest zarejestrowane. Zaloguj się używając loginu i hasła.");
         }
 
         // System automatycznie próbuje REAL, a następnie FAKE klucz
