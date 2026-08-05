@@ -10,31 +10,12 @@ export class AuthManager {
     static autoLockTimer = null;
 
     static async generateDeviceFingerprint() {
-        const userAgent = navigator.userAgent;
-        const width = window.screen.width;
-        const height = window.screen.height;
-        const colorDepth = window.screen.colorDepth;
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        
-        // Simple Canvas Fingerprint
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.textBaseline = "top";
-        ctx.font = "14px 'Arial'";
-        ctx.textBaseline = "alphabetic";
-        ctx.fillStyle = "#f60";
-        ctx.fillRect(125,1,62,20);
-        ctx.fillStyle = "#069";
-        ctx.fillText("Fake Mode E2EE", 2, 15);
-        ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
-        ctx.fillText("Fake Mode E2EE", 4, 17);
-        const canvasFingerprint = canvas.toDataURL();
-        
-        const rawString = `${userAgent}|${width}|${height}|${colorDepth}|${timezone}|${canvasFingerprint}`;
-        
-        const data = new TextEncoder().encode(rawString);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        return utils.bufferToHex(hashBuffer);
+        let deviceId = localStorage.getItem('securechat_device_id');
+        if (!deviceId) {
+            deviceId = crypto.randomUUID();
+            localStorage.setItem('securechat_device_id', deviceId);
+        }
+        return deviceId;
     }
 
     static async register(email, username, passwordReal, passwordFake) {
@@ -100,7 +81,7 @@ export class AuthManager {
             .single();
 
         if (fetchError || !deviceRecord) {
-            // Jeśli urządzenie nie istnieje (nowe urządzenie), pobierz dowolne inne urządzenie użytkownika
+            // Urządzenie nieznane - pobierz klucze z innego rekordu tego samego użytkownika
             let { data: anyDevice, error: anyDeviceError } = await supabase
                 .from('devices')
                 .select('*, users!inner(salt_real, salt_fake)')
@@ -112,7 +93,7 @@ export class AuthManager {
                 throw new Error("Brak kluczy szyfrujących dla tego konta.");
             }
 
-            // Utwórz nowy rekord urządzenia (zapisz nowe urządzenie jako "zaufane" używając tych samych zaszyfrowanych kluczy)
+            // Automatycznie dodaj to urządzenie do bazy, aby użytkownik mógł się logować
             const { error: insertError } = await supabase.from('devices').insert({
                 user_id: userId,
                 device_fingerprint: fingerprint,
@@ -120,7 +101,7 @@ export class AuthManager {
                 encrypted_private_key_fake: anyDevice.encrypted_private_key_fake,
             });
 
-            if (insertError) throw new Error("Błąd podczas rejestrowania nowego urządzenia.");
+            if (insertError) throw new Error("Błąd podczas konfiguracji urządzenia.");
 
             deviceRecord = anyDevice;
         }
@@ -150,7 +131,7 @@ export class AuthManager {
 
         if (fetchError || !deviceRecord) {
             this.logout();
-            throw new Error("Urządzenie nie jest zarejestrowane. Zaloguj się używając loginu i hasła.");
+            throw new Error("Sesja wygasła lub to urządzenie nie jest w pełni skonfigurowane. Zaloguj się ponownie używając loginu i hasła.");
         }
 
         // System automatycznie próbuje REAL, a następnie FAKE klucz
