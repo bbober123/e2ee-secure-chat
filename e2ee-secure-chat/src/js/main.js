@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    document.getElementById('force-logout-button').addEventListener('click', async () => {
+        await AuthManager.logout();
+    });
+
     // 2. Odblokowanie (Lock Screen)
     document.getElementById('unlock-form').addEventListener('submit', async (e) => {
         e.preventDefault();
