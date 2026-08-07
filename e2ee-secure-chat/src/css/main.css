@@ -154,3 +154,8 @@ input, textarea { font-family: inherit; }
 .login-history-row:last-child { border-bottom: none; }
 #settings-modal .modal-card { max-height: 85vh; overflow-y: auto; text-align: left; }
 #settings-modal h3 { text-align: center; }
+
+/* Formularz logowania/rejestracji jest czasem przełączany przez JS na
+   display:flex (np. po powrocie z listy zapisanych kont) - bez tego wymuszenia
+   flex domyślnie układa pola w rząd zamiast w kolumnę. */
+#auth-form { flex-direction: column; }
