@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://*.supabase.co wss://*.supabase.co; style-src 'self' 'unsafe-inline'; script-src 'self' 'module'; img-src * data: blob:;">
+    <title>SecureChat E2EE</title>
+    <link rel="stylesheet" href="/src/css/main.css">
+</head>
+<body>
+    <!-- Lock Screen -->
+    <div id="lock-screen" class="overlay">
+        <div class="lock-card">
+            <h2>Odblokuj SecureChat</h2>
+            <form id="unlock-form">
+                <input type="password" id="unlock-password" placeholder="Hasło" required>
+                <button type="submit" id="unlock-button">Odblokuj</button>
+                <button type="button" id="force-logout-button" style="margin-top: 10px; background-color: transparent; color: #888; font-size: 14px;">Wyloguj i zaloguj ponownie</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login/Register Screen (Fallback) -->
+    <div id="auth-screen" class="overlay" style="display: none;">
+        <div class="lock-card">
+            <h2 id="auth-title">Zaloguj się</h2>
+            <form id="auth-form">
+                <input type="email" id="auth-email" placeholder="Email" required>
+                <input type="text" id="auth-username" placeholder="Nazwa użytkownika" style="display: none;">
+                <input type="password" id="auth-password" placeholder="Hasło" required>
+                <input type="password" id="auth-fake-password" placeholder="Hasło awaryjne (Fake Mode, opcjonalne)" style="display: none;">
+                <button type="submit" id="auth-submit-btn">Wejdź</button>
+            </form>
+            <div class="auth-toggle">
+                <span id="auth-toggle-text">Nie masz konta?</span>
+                <button type="button" id="auth-toggle-btn">Zarejestruj się</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-container" class="app-layout" style="visibility: hidden;">
+        <!-- Left Col -->
+        <nav class="left-col">
+            <div class="nav-items">
+                <button class="nav-icon active" title="Czaty">💬</button>
+                <button class="nav-icon" title="Kontakty">👥</button>
+                <button class="nav-icon" title="Ustawienia">⚙️</button>
+                <button class="nav-icon" id="manual-lock-btn" title="Zablokuj">🔒</button>
+            </div>
+            <div class="user-avatar-container">
+                <div class="avatar">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="avatar">
+                    <div class="status-dot"></div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mid Col -->
+        <aside class="mid-col" id="mid-col">
+            <div class="mid-header">
+                <div class="user-info">
+                    <span class="username" id="current-username">...</span>
+                    <span class="status-text">Online</span>
+                </div>
+                <button class="icon-btn" id="add-contact-btn">+</button>
+            </div>
+            <div class="search-container">
+                <input type="text" placeholder="Szukaj rozmów..." class="search-input">
+            </div>
+            <div class="conversations-list" id="conversations-list">
+                <!-- Injected by JS -->
+            </div>
+        </aside>
+
+        <!-- Right Col -->
+        <main class="right-col" id="right-col">
+            <div class="chat-header">
+                <button class="mobile-back-btn" id="mobile-back-btn">← Wróć</button>
+                <div class="chat-title-info">
+                    <h3 id="chat-title">Wybierz rozmowę</h3>
+                    <span class="e2ee-status"><span class="pulse-lock">🔒</span> Szyfrowanie end-to-end aktywne</span>
+                </div>
+            </div>
+            <div class="messages-container" id="messages-container">
+                <!-- Injected by JS -->
+            </div>
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea id="message-input" placeholder="Napisz zaszyfrowaną wiadomość..." rows="1" maxlength="2000"></textarea>
+                    <button id="send-button" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="send-icon">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                        </svg>
+                    </button>
+                </div>
+                <span class="encryption-notice">Wiadomość zostanie zaszyfrowana lokalnie przed wysłaniem</span>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals & Toasts -->
+    <div id="toast-container"></div>
+    <div id="add-contact-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <h3>Dodaj kontakt</h3>
+            <input type="text" id="contact-username" placeholder="Nazwa użytkownika" class="modal-input">
+            <input type="text" id="contact-nickname" placeholder="Nick (opcjonalnie - Real)" class="modal-input">
+            <input type="text" id="contact-fake-nickname" placeholder="Nick (opcjonalnie - Fake)" class="modal-input">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="document.getElementById('add-contact-modal').style.display='none'">Anuluj</button>
+                <button class="btn-primary" id="confirm-add-contact">Dodaj</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
