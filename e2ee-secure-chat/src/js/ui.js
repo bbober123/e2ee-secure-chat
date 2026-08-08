@@ -26,6 +26,12 @@ export const UI = {
         document.getElementById('add-contact-btn').addEventListener('click', () => {
             document.getElementById('add-contact-modal').style.display = 'flex';
         });
+        document.getElementById('cancel-add-contact').addEventListener('click', () => {
+            document.getElementById('add-contact-modal').style.display = 'none';
+        });
+        document.getElementById('close-settings-modal').addEventListener('click', () => {
+            document.getElementById('settings-modal').style.display = 'none';
+        });
     },
 
     showApp() {
