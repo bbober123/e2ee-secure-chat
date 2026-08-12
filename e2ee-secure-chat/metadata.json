@@ -1,8 +1,0 @@
-{
-  "name": "E2EE Secure Chat",
-  "description": "Secure End-to-End Encrypted chat application with plausible deniability and zero-persistence memory vault.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}
