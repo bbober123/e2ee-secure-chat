@@ -1,0 +1,59 @@
+/**
+ * components/modals.css — nakładka blokady ekranu/logowania, generyczne modale,
+ * ustawienia konta i formularz logowania/rejestracji.
+ */
+/* Overlay / Lock Screen */
+.overlay, .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 100; display: flex; justify-content: center; align-items: center; user-select: none; animation: overlayFadeIn 0.2s var(--ease-out); }
+.lock-card, .modal-card { width: 100%; max-width: 420px; background: var(--bg-floating); border-radius: var(--radius-lg); padding: 32px; text-align: center; box-shadow: var(--shadow-lg); animation: cardPopIn 0.3s var(--ease-spring); }
+.lock-card h2, .modal-card h3 { font-size: 20px; font-weight: 600; color: var(--text-bright); margin-bottom: 20px; }
+.lock-card input, .modal-input {
+    width: 100%; background: #1e1f22; border: 1px solid transparent; border-radius: var(--radius-sm);
+    color: var(--text-bright); padding: 10px 12px; margin-bottom: 16px; outline: none; font-size: 14px;
+    transition: box-shadow 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+}
+.lock-card input:focus, .modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2); }
+.lock-card input.error { border-color: var(--error); box-shadow: 0 0 0 3px rgba(242, 63, 66, 0.2); }
+.lock-card button, .btn-primary {
+    width: 100%; background: var(--accent); color: #fff; border-radius: 6px; padding: 12px;
+    font-weight: 500; font-size: 14px; transition: background 0.15s ease, transform 0.15s var(--ease-out);
+}
+.lock-card button:hover, .btn-primary:hover { background: var(--accent-hover); }
+.lock-card button:active, .btn-primary:active { transform: scale(0.97); }
+
+.auth-toggle { margin-top: 20px; font-size: 13px; color: var(--text-muted); display: flex; justify-content: center; align-items: center; gap: 6px; }
+.auth-toggle button { width: auto; padding: 0; background: transparent; color: #00a8fc; font-weight: 400; }
+.auth-toggle button:hover { background: transparent; color: #00a8fc; text-decoration: underline; }
+
+.modal-actions { display: flex; gap: 12px; margin-top: 8px; }
+.btn-cancel { flex: 1; padding: 12px; background: transparent; color: var(--text-muted); border-radius: 6px; font-weight: 500; font-size: 14px; transition: background 0.15s ease, color 0.15s ease, transform 0.15s var(--ease-out); }
+.btn-cancel:hover { color: var(--text-bright); background: var(--bg-modifier-hover); text-decoration: underline; }
+.btn-cancel:active, #close-settings-modal:active { transform: scale(0.97); }
+
+@keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cardPopIn { from { opacity: 0; transform: scale(0.94) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* --- Ustawienia / awatar / przełącznik kont --- */
+.settings-section { text-align: left; margin-bottom: 20px; }
+.settings-section h4 { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; font-weight: 700; margin-bottom: 10px; }
+.saved-account-item, .settings-account-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm);
+    background: #1e1f22; margin-bottom: 8px; cursor: pointer; transition: background 0.15s;
+    text-align: left;
+}
+.saved-account-item:hover, .settings-account-item:hover { background: var(--bg-modifier-hover); }
+.saved-account-item img, .settings-account-item img { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; object-fit: cover; }
+.saved-account-item .acc-meta, .settings-account-item .acc-meta { display: flex; flex-direction: column; min-width: 0; }
+.saved-account-item .acc-name, .settings-account-item .acc-name { color: var(--text-bright); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.saved-account-item .acc-email, .settings-account-item .acc-email { color: var(--text-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.settings-account-item.current { box-shadow: 0 0 0 1px var(--accent); cursor: default; }
+.login-history-row { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border-color); }
+.login-history-row:last-child { border-bottom: none; }
+#settings-modal .modal-card { max-height: 85vh; overflow-y: auto; text-align: left; }
+#settings-modal h3 { text-align: center; }
+#settings-avatar-preview { transition: border-radius 0.15s; }
+#settings-avatar-preview:hover { border-radius: 35% !important; }
+
+/* Formularz logowania/rejestracji jest czasem przełączany przez JS na
+   display:flex (np. po powrocie z listy zapisanych kont) - bez tego wymuszenia
+   flex domyślnie układa pola w rząd zamiast w kolumnę. */
+#auth-form { flex-direction: column; }
