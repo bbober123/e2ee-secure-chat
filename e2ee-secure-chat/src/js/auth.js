@@ -125,7 +125,9 @@ export class AuthManager {
             user_id: userId,
             device_fingerprint: fingerprint,
             encrypted_private_key_real: vaultData.deviceRecord.encrypted_private_key_real,
-            encrypted_private_key_fake: vaultData.deviceRecord.encrypted_private_key_fake
+            encrypted_private_key_fake: vaultData.deviceRecord.encrypted_private_key_fake,
+            encrypted_prekey_vault_real: vaultData.deviceRecord.encrypted_prekey_vault_real,
+            encrypted_prekey_vault_fake: vaultData.deviceRecord.encrypted_prekey_vault_fake,
         });
 
         if (deviceError) throw deviceError;
@@ -187,6 +189,8 @@ export class AuthManager {
                 device_fingerprint: fingerprint,
                 encrypted_private_key_real: anyDevice.encrypted_private_key_real,
                 encrypted_private_key_fake: anyDevice.encrypted_private_key_fake,
+                encrypted_prekey_vault_real: anyDevice.encrypted_prekey_vault_real,
+                encrypted_prekey_vault_fake: anyDevice.encrypted_prekey_vault_fake,
             });
 
             if (insertError) throw new Error("Błąd podczas konfiguracji urządzenia.");
