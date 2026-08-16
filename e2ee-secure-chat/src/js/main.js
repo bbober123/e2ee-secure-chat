@@ -5,6 +5,7 @@ import { ChatApp } from './chat.js';
 import { AccountSwitcher } from './accounts.js';
 import { ProfileManager } from './profile.js';
 import { AppState } from './state.js';
+import './casino.js';
 
 /** Pokazuje ekran logowania, z listą zapisanych kont (jeśli jakieś są). */
 function presentAuthScreen() {
