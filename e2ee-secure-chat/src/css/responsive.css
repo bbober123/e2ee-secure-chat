@@ -65,7 +65,6 @@ html, body { height: 100%; overflow-x: hidden; }
 /* dla listy rozmów (wygodniejsze cele dotykowe).                       */
 /* ------------------------------------------------------------------ */
 @media (max-width: 1024px) {
-    .left-col { display: none; }
     .mid-col { width: 320px; }
 }
 
@@ -75,13 +74,20 @@ html, body { height: 100%; overflow-x: hidden; }
 /* miały font-size ≥16px (inaczej iOS Safari automatycznie przybliża    */
 /* stronę przy dotknięciu pola - bardzo irytujące UX).                  */
 /* ------------------------------------------------------------------ */
+
 @media (max-width: 767px) {
-    .mid-col { width: 100%; display: flex; }
-    .right-col { width: 100%; display: none; }
+    .left-col { width: 56px; padding: 10px 0; gap: 4px; }
+    .nav-icon { width: 42px; height: 42px; font-size: 18px; }
+    .user-avatar-container .avatar { width: 36px; height: 36px; }
+
+    .mid-col { width: calc(100% - 56px); display: flex; }
+    .right-col { width: calc(100% - 56px); display: none; }
     .mobile-back-btn { display: flex; align-items: center; }
 
     .app-layout.chat-active .mid-col { display: none; }
     .app-layout.chat-active .right-col { display: flex; }
+    .app-layout.chat-active .left-col { display: none; }
+    .app-layout.chat-active .right-col { width: 100%; }
 
     /* Zapobiega auto-zoomowi iOS Safari przy fokusowaniu pola < 16px. */
     #message-input,
