@@ -1,0 +1,8 @@
+/**
+ * casino/cards.css — karty do gry generowane jako SVG (patrz ../../js/casino/cards.js).
+ */
+/* --- Karty do gry (SVG generowane w cards.js) --- */
+.card-hand { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.playing-card { border-radius: 8px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); animation: cardDeal 0.28s var(--ease-out, ease); }
+@keyframes cardDeal { from { opacity: 0; transform: translateY(-14px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+

@@ -1,0 +1,26 @@
+/**
+ * casino/slots.css — automat do gry (bębny, linia wygrywająca, tabela wypłat).
+ */
+/* --- Automaty --- */
+.slots-machine { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.slots-cabinet {
+    background: linear-gradient(160deg, #7a1f1f 0%, #4a0f0f 100%);
+    border: 6px solid var(--casino-gold); border-radius: 20px; padding: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.slots-marquee { text-align: center; color: var(--casino-gold); font-family: Georgia, serif; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 12px; font-size: 15px; }
+.slots-window { background: #111; border-radius: 10px; padding: 10px; position: relative; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+.slots-payline { position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; background: rgba(226,185,59,0.7); z-index: 2; transform: translateY(-1px); }
+.slots-grid { display: flex; gap: 8px; }
+.slots-reel {
+    display: flex; flex-direction: column; gap: 4px; background: #1a1a1a; border-radius: 6px; padding: 4px;
+    border: 1px solid #333;
+}
+.slots-symbol { width: 64px; height: 56px; display: flex; align-items: center; justify-content: center; font-size: 32px; background: #0d0d0d; border-radius: 4px; }
+.slots-symbol-mid { background: #241a05; box-shadow: inset 0 0 0 2px rgba(226,185,59,0.4); }
+.slots-spin-btn { width: auto; padding: 14px 32px; font-size: 15px; }
+.slots-paytable { color: rgba(253,250,241,0.6); font-size: 12px; max-width: 400px; text-align: center; }
+.slots-paytable summary { cursor: pointer; color: var(--casino-gold-dim); margin-bottom: 8px; }
+.slots-paytable-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.slots-paytable-grid span { color: rgba(253,250,241,0.5); font-size: 10px; display: block; }
+
