@@ -113,7 +113,7 @@ export const UiHandlersMixin = {
 
             const joinEl = e.target.closest('[data-join-game]');
             if (joinEl && joinEl.dataset.joinTable) {
-                const { Casino } = await import('./casino.js');
+                const { Casino } = await import('../casino.js');
                 Casino.joinFromInvite(joinEl.dataset.joinGame, joinEl.dataset.joinTable);
             }
         });
