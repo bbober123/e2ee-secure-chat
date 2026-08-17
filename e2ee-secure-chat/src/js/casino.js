@@ -4,12 +4,14 @@ import { SoloBlackjack, MultiplayerBlackjack, createBlackjackInviteTable } from 
 import { Roulette } from './casino/roulette.js';
 import { SlotMachine } from './casino/slots.js';
 import { SoloPoker } from './casino/poker.js';
+import { CaseOpening } from './casino/cases.js';
 
 const GAMES = [
     { id: 'blackjack', title: 'Blackjack', icon: '🂡', tagline: 'Podbij krupiera do 21. Graj solo albo zaproś znajomego.' },
     { id: 'roulette', title: 'Ruletka', icon: '🎡', tagline: 'Postaw na kolor, numer albo tuzin i zakręć kołem.' },
     { id: 'slots', title: 'Automaty', icon: '🎰', tagline: 'Klasyczny jednoręki bandyta z 3 bębnami.' },
-    { id: 'poker', title: 'Poker', icon: '🃏', tagline: 'Texas Hold\'em przeciwko botom przy stole.' }
+    { id: 'poker', title: 'Poker', icon: '🃏', tagline: 'Texas Hold\'em przeciwko botom przy stole.' },
+    { id: 'cases', title: 'Skrzynki', icon: '📦', tagline: 'Otwórz skrzynkę i zgarnij losowy skin za żetony.' }
 ];
 
 export const Casino = {
@@ -97,6 +99,8 @@ export const Casino = {
         } else if (gameId === 'poker') {
             this.currentInstance = new SoloPoker(mount);
             this.currentInstance.start();
+        } else if (gameId === 'cases') {
+            this.currentInstance = new CaseOpening(mount);
         }
 
         this._refreshWalletLoop();
