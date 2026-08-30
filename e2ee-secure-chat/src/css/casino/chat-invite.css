@@ -1,0 +1,14 @@
+/**
+ * casino/chat-invite.css — kafelek zaproszenia do gry osadzony w wiadomości czatu.
+ */
+/* --- Zaproszenie do gry w wiadomości czatu --- */
+.msg-game-invite {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    background: linear-gradient(135deg, var(--casino-felt) 0%, var(--casino-felt-dark) 100%);
+    border: 1px solid var(--casino-gold-dim); border-radius: 12px; max-width: 320px;
+}
+.invite-icon { font-size: 26px; flex-shrink: 0; }
+.invite-body { flex: 1; min-width: 0; }
+.invite-title { color: var(--casino-gold); font-weight: 700; font-size: 13px; }
+.invite-game { color: rgba(253,250,241,0.75); font-size: 12px; margin-top: 2px; }
+.invite-join-btn { width: auto; padding: 8px 14px; font-size: 12.5px; flex-shrink: 0; }
