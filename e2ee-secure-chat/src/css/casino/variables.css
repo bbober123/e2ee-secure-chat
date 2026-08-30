@@ -1,0 +1,16 @@
+/* ============================================================
+   KAZYNO — motyw "zielone sukno + złoto", osadzony nad istniejącym
+   ciemnym motywem aplikacji (main.css). Zamierzony kontrast: reszta
+   apki jest chłodna/granatowo-szara, kazyno jest ciepłe (butelkowa
+   zieleń + złoto) - żeby czuć, że wszedłeś "do innego pokoju".
+   ============================================================ */
+:root {
+    --casino-felt-dark: #0a3428;
+    --casino-felt: #0e4b38;
+    --casino-felt-light: #156349;
+    --casino-gold: #e2b93b;
+    --casino-gold-dim: #a8862b;
+    --casino-red: #dc2626;
+    --casino-ink: #1a1a1a;
+    --casino-cream: #fdfaf1;
+}

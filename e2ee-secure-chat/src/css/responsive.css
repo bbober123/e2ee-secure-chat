@@ -1,0 +1,211 @@
+/**
+ * responsive.css — WSZYSTKIE reguły dopasowujące układ do rozmiaru ekranu.
+ *
+ * Ten plik musi być załadowany JAKO OSTATNI z plików bazowych/layoutu/komponentów
+ * (patrz kolejność <link> w index.html) — dzięki temu reguły tutaj mają
+ * pierwszeństwo nad "domyślnymi" stylami desktopowymi zdefiniowanymi gdzie
+ * indziej, bez potrzeby dopisywania !important.
+ *
+ * Podejście "mobile-aware, desktop-first": bazowe pliki (layout/, components/)
+ * opisują wygodny widok na dużym ekranie, a tutaj dokładamy korekty dla
+ * coraz mniejszych/innych ekranów, od największych breakpointów w dół:
+ *
+ *   ≥1440px  duży desktop     — czat wyśrodkowany, ograniczona max-szerokość
+ *   1025-1439px  desktop       — układ bazowy (3 kolumny)
+ *   768-1024px   tablet        — chowamy lewą szynę serwerów
+ *   481-767px    telefon       — jedna kolumna na raz (lista LUB czat)
+ *   361-480px    mały telefon  — dociągnięte odstępy/czcionki
+ *   ≤360px       bardzo mały   — maksymalna oszczędność miejsca
+ *
+ * Dodatkowo: obsługa notcha (safe-area-inset-*), dynamicznej wysokości
+ * viewportu na mobile (100dvh), zapobieganie "zoomowi" iOS przy fokusie
+ * pola tekstowego oraz większe cele dotykowe na urządzeniach z touchem.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Wysokość viewportu: 100vh na mobile "ucieka" pod pasek adresu.      */
+/* 100dvh (dynamic viewport height) rozwiązuje to na nowszych          */
+/* przeglądarkach; zostawiamy 100vh jako fallback dla starszych.       */
+/* ------------------------------------------------------------------ */
+html, body { height: 100%; overflow-x: hidden; }
+.app-layout { height: 100vh; height: 100dvh; }
+.overlay, .modal-overlay, .call-overlay, .casino-overlay {
+    height: 100vh; height: 100dvh;
+}
+
+/* Nigdy nie pozwalamy na poziomy scroll, niezależnie od rozmiaru ekranu. */
+.app-layout, .mid-col, .right-col, .messages-container, .conversations-list {
+    max-width: 100vw;
+}
+
+/* ------------------------------------------------------------------ */
+/* Notch / wcięcia w ekranie (iPhone itp.) - dokładamy bezpieczny margines */
+/* tam, gdzie treść dotyka krawędzi ekranu.                            */
+/* ------------------------------------------------------------------ */
+@supports (padding: max(0px)) {
+    .left-col { padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+    .input-area { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+    #toast-container { top: max(20px, env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); }
+    .call-controls { margin-bottom: env(safe-area-inset-bottom); }
+    .lock-card, .modal-card { margin-bottom: env(safe-area-inset-bottom); }
+}
+
+/* ------------------------------------------------------------------ */
+/* ≥1440px — duży desktop: czat wyśrodkowany, żeby linie tekstu nie były */
+/* nieczytelnie rozciągnięte na szerokich monitorach.                   */
+/* ------------------------------------------------------------------ */
+@media (min-width: 1440px) {
+    .messages-container { padding-left: max(16px, calc((100% - 900px) / 2)); padding-right: max(16px, calc((100% - 900px) / 2)); }
+    .input-area { padding-left: max(16px, calc((100% - 900px) / 2)); padding-right: max(16px, calc((100% - 900px) / 2)); }
+    .mid-col { width: 320px; }
+}
+
+/* ------------------------------------------------------------------ */
+/* ≤1024px — tablet: szyna nawigacji (jak w Discordzie) zostaje         */
+/* widoczna cały czas — to jedyny sposób dotarcia do kontaktów, kazyna, */
+/* ustawień i blokady na dotykowym ekranie, więc nie chowamy jej.       */
+/* ------------------------------------------------------------------ */
+@media (max-width: 1024px) {
+    .mid-col { width: 320px; }
+}
+
+/* ------------------------------------------------------------------ */
+/* ≤767px — telefon: szyna nawigacji zostaje widoczna (węższa, jak w    */
+/* Discordzie na telefonie), a obok niej jedna kolumna na raz - lista   */
+/* rozmów LUB otwarty czat, przełączane przyciskiem "wstecz".           */
+/* Powiększamy cele dotykowe i pilnujemy, żeby pola tekstowe miały      */
+/* font-size ≥16px (inaczej iOS Safari automatycznie przybliża stronę   */
+/* przy dotknięciu pola - bardzo irytujące UX).                         */
+/* ------------------------------------------------------------------ */
+@media (max-width: 767px) {
+    .left-col { width: 56px; padding: 10px 0; gap: 4px; }
+    .nav-icon { width: 42px; height: 42px; font-size: 18px; }
+    .user-avatar-container .avatar { width: 36px; height: 36px; }
+
+    .mid-col { width: calc(100% - 56px); display: flex; }
+    .right-col { width: calc(100% - 56px); display: none; }
+    .mobile-back-btn { display: flex; align-items: center; }
+
+    .app-layout.chat-active .mid-col { display: none; }
+    .app-layout.chat-active .right-col { display: flex; }
+    /* W widoku otwartego czatu przycisk "wstecz" wraca do listy rozmów,  */
+    /* więc szyna nawigacji (kontakty/kazyno/ustawienia/blokada) też się  */
+    /* w tym widoku chowa - dokładnie jak w Discordzie, żeby czat miał    */
+    /* pełną szerokość ekranu.                                           */
+    .app-layout.chat-active .left-col { display: none; }
+    .app-layout.chat-active .right-col { width: 100%; }
+
+    /* Zapobiega auto-zoomowi iOS Safari przy fokusowaniu pola < 16px. */
+    #message-input,
+    .lock-card input,
+    .modal-input,
+    .search-input {
+        font-size: 16px;
+    }
+
+    /* Więcej "powietrza" wokół małych przycisków-ikon, żeby łatwiej było */
+    /* w nie trafić palcem, bez powiększania samej ikony wizualnie.       */
+    .icon-btn { width: 32px; height: 32px; }
+    .mobile-back-btn { padding: 10px 8px; }
+    #attach-button, #voice-record-button { padding: 10px; }
+    .toast-close { padding: 6px; }
+
+    .mid-header { height: 52px; }
+    .chat-header { height: 52px; }
+    .input-area { min-height: 72px; }
+
+    /* Modale i karty logowania: nigdy nie wychodzą poza wysokość ekranu, */
+    /* przewijają się samodzielnie zamiast przycinać dolne przyciski.     */
+    .lock-card, .modal-card {
+        width: calc(100% - 32px);
+        max-width: 420px;
+        max-height: 88dvh;
+        overflow-y: auto;
+        padding: 24px 20px;
+    }
+
+    .msg-media { max-width: min(280px, 78vw); }
+    .msg-voice-player audio { max-width: 60vw; }
+
+    .call-local-preview { width: 100px; height: 72px; bottom: 100px; right: 16px; }
+    .call-avatar { width: 84px; height: 84px; }
+
+    #toast-container { left: 12px; right: 12px; top: 12px; }
+    .toast { max-width: none; }
+}
+
+/* ------------------------------------------------------------------ */
+/* ≤480px — mały telefon (np. iPhone SE, starsze Androidy): dociągamy   */
+/* odstępy i rozmiary, żeby nic się nie ścieśniało ani nie wychodziło   */
+/* poza ekran.                                                          */
+/* ------------------------------------------------------------------ */
+@media (max-width: 480px) {
+    .mid-header, .chat-header { padding: 0 12px; }
+    .search-container { padding: 0 8px 6px; }
+    .conversations-list { padding: 0 6px; }
+    .messages-container { padding: 12px 10px 6px; }
+    .input-area { padding: 0 10px 14px; }
+
+    .conv-avatar, .msg-avatar { width: 36px; height: 36px; }
+    .msg-avatar.grouped { width: 36px; }
+    .avatar { width: 40px; height: 40px; }
+
+    .lock-card, .modal-card { padding: 20px 16px; border-radius: var(--radius-md); }
+    .lock-card h2, .modal-card h3 { font-size: 18px; margin-bottom: 16px; }
+
+    .modal-actions { flex-direction: column; }
+
+    .msg-text, #message-input { font-size: 15px; }
+    .conv-name { font-size: 13.5px; }
+    .conv-msg { font-size: 12.5px; }
+
+    .call-btn { width: 48px; height: 48px; font-size: 18px; }
+    .call-controls { gap: 12px; }
+    .call-screen h2 { font-size: 18px; }
+
+    .fr-avatar { width: 32px; height: 32px; }
+}
+
+/* ------------------------------------------------------------------ */
+/* ≤360px — bardzo mały telefon: absolutne minimum, głównie mniejsze    */
+/* czcionki nagłówków i marginesy list.                                 */
+/* ------------------------------------------------------------------ */
+@media (max-width: 360px) {
+    .casino-title, .lock-card h2 { font-size: 17px; }
+    .username { font-size: 14px; }
+    .nav-icon { width: 42px; height: 42px; }
+    .user-avatar-container .avatar { width: 38px; height: 38px; }
+    .send-icon { width: 18px; height: 18px; }
+    .encryption-notice { display: none; } /* czysto informacyjny tekst - pierwsze co można oszczędzić */
+}
+
+/* ------------------------------------------------------------------ */
+/* Ekrany niskie / orientacja pozioma na telefonie (np. obrócony        */
+/* telefon podczas rozmowy wideo) — pilnujemy, żeby karty logowania i   */
+/* ekran połączenia dało się w całości zobaczyć/przewinąć.              */
+/* ------------------------------------------------------------------ */
+@media (max-height: 500px) and (orientation: landscape) {
+    .lock-card, .modal-card { max-height: 92dvh; padding: 16px 20px; }
+    .lock-card h2, .modal-card h3 { margin-bottom: 12px; }
+
+    .call-screen { padding: 12px; gap: 6px; justify-content: flex-start; padding-top: max(12px, env(safe-area-inset-top)); }
+    .call-avatar { width: 64px; height: 64px; }
+    .call-controls { margin-top: 8px; }
+    .call-local-preview { bottom: 8px; right: 8px; width: 90px; height: 64px; }
+
+    .messages-container { padding-top: 8px; }
+    .input-area { min-height: 56px; padding-bottom: 8px; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Urządzenia dotykowe (telefon/tablet, ale też touchscreeny na         */
+/* laptopach): brak :hover, więc powiększamy strefy dotyku zamiast      */
+/* polegać na kursorze trafiającym w mały element.                      */
+/* ------------------------------------------------------------------ */
+@media (hover: none) and (pointer: coarse) {
+    .nav-icon { width: 50px; height: 50px; }
+    .conv-item { padding: 10px 8px; }
+    .dropdown-item { padding: 12px; }
+    .fr-btn-sm { padding: 8px 14px; }
+    .chip-btn { min-width: 44px; min-height: 44px; }
+}
