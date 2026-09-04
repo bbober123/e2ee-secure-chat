@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://*.supabase.co wss://*.supabase.co https://api.ipify.org https://api.coingecko.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'module'; img-src * data: blob:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;">
+    <meta name="referrer" content="no-referrer">
+    <title>SecureChat E2EE</title>
+    <!--
+        Kolejność ma znaczenie (kaskada CSS): zmienne/reset najpierw, potem
+        layout i komponenty, na końcu responsive.css - żeby jego reguły
+        dopasowania do ekranu miały pierwszeństwo bez używania !important.
+        Ta sama zasada dotyczy plików w src/css/casino/.
+    -->
+    <link rel="stylesheet" href="/src/css/base/variables.css">
+    <link rel="stylesheet" href="/src/css/base/reset.css">
+    <link rel="stylesheet" href="/src/css/base/animations.css">
+    <link rel="stylesheet" href="/src/css/layout/shell.css">
+    <link rel="stylesheet" href="/src/css/layout/sidebar.css">
+    <link rel="stylesheet" href="/src/css/layout/chat-panel.css">
+    <link rel="stylesheet" href="/src/css/components/skeletons.css">
+    <link rel="stylesheet" href="/src/css/components/modals.css">
+    <link rel="stylesheet" href="/src/css/components/dropdowns.css">
+    <link rel="stylesheet" href="/src/css/components/toasts.css">
+    <link rel="stylesheet" href="/src/css/components/media.css">
+    <link rel="stylesheet" href="/src/css/components/calls.css">
+    <link rel="stylesheet" href="/src/css/responsive.css">
+    <link rel="stylesheet" href="/src/css/casino/variables.css">
+    <link rel="stylesheet" href="/src/css/casino/shell.css">
+    <link rel="stylesheet" href="/src/css/casino/hub.css">
+    <link rel="stylesheet" href="/src/css/casino/cards.css">
+    <link rel="stylesheet" href="/src/css/casino/blackjack.css">
+    <link rel="stylesheet" href="/src/css/casino/roulette.css">
+    <link rel="stylesheet" href="/src/css/casino/slots.css">
+    <link rel="stylesheet" href="/src/css/casino/cases.css">
+    <link rel="stylesheet" href="/src/css/casino/inventory.css">
+    <link rel="stylesheet" href="/src/css/casino/admin.css">
+    <link rel="stylesheet" href="/src/css/casino/poker.css">
+    <link rel="stylesheet" href="/src/css/casino/chat-invite.css">
+    <link rel="stylesheet" href="/src/css/casino/exchange.css">
+    <link rel="stylesheet" href="/src/css/casino/responsive.css">
+</head>
+<body>
+    <!-- Lock Screen -->
+    <div id="lock-screen" class="overlay">
+        <div class="lock-card">
+            <h2>Odblokuj SecureChat</h2>
+            <form id="unlock-form">
+                <input type="password" id="unlock-password" placeholder="Hasło" required>
+                <button type="submit" id="unlock-button">Odblokuj</button>
+                <button type="button" id="force-logout-button" style="margin-top: 10px; background-color: transparent; color: #888; font-size: 14px;">Wyloguj i zaloguj ponownie</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login/Register Screen (Fallback) -->
+    <div id="auth-screen" class="overlay" style="display: none;">
+        <div class="lock-card">
+            <!-- Konta zapisane na tym urządzeniu - kliknięcie od razu prosi tylko o hasło -->
+            <div id="saved-accounts-panel" style="display: none;">
+                <h2>Wybierz konto</h2>
+                <div id="saved-accounts-list"></div>
+                <button type="button" id="use-other-account-btn" style="margin-top: 10px; background-color: transparent; color: #888; font-size: 14px;">Zaloguj na inne konto</button>
+            </div>
+
+            <form id="auth-form">
+                <h2 id="auth-title">Zaloguj się</h2>
+                <input type="email" id="auth-email" placeholder="Email" required>
+                <input type="text" id="auth-username" placeholder="Nazwa użytkownika" style="display: none;">
+                <input type="password" id="auth-password" placeholder="Hasło" required>
+                <input type="password" id="auth-fake-password" placeholder="Hasło awaryjne (Fake Mode, opcjonalne)" style="display: none;">
+                <button type="submit" id="auth-submit-btn">Wejdź</button>
+            </form>
+            <div class="auth-toggle">
+                <span id="auth-toggle-text">Nie masz konta?</span>
+                <button type="button" id="auth-toggle-btn">Zarejestruj się</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Przełączanie na zapisane konto: tylko hasło, bez ponownego wpisywania loginu -->
+    <div id="switch-account-screen" class="overlay" style="display: none;">
+        <div class="lock-card">
+            <div class="user-info" style="justify-content:center; margin-bottom: 12px;">
+                <img id="switch-account-avatar" src="" alt="" style="width:48px; height:48px; border-radius:50%; margin-bottom:8px;">
+            </div>
+            <h2>Odblokuj konto <span id="switch-account-name"></span></h2>
+            <form id="switch-account-form">
+                <input type="password" id="switch-account-password" placeholder="Hasło" required>
+                <button type="submit" id="switch-account-button">Odblokuj</button>
+                <button type="button" id="switch-account-cancel-btn" style="margin-top: 10px; background-color: transparent; color: #888; font-size: 14px;">Wróć do listy kont</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-container" class="app-layout" style="visibility: hidden;">
+        <!-- Left Col -->
+        <nav class="left-col">
+            <div class="nav-items">
+                <button class="nav-icon active" title="Czaty">💬</button>
+                <button class="nav-icon" title="Kontakty">👥</button>
+                <button class="nav-icon" id="casino-nav-btn" title="Kazyno">🎰</button>
+                <button class="nav-icon" id="settings-btn" title="Ustawienia">⚙️</button>
+                <button class="nav-icon" id="manual-lock-btn" title="Zablokuj">🔒</button>
+            </div>
+            <div class="user-avatar-container" id="my-avatar-btn" title="Ustawienia profilu" style="cursor:pointer;">
+                <div class="avatar">
+                    <img id="my-avatar-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" alt="avatar">
+                    <div class="status-dot"></div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mid Col -->
+        <aside class="mid-col" id="mid-col">
+            <div class="mid-header">
+                <div class="user-info">
+                    <span class="username" id="current-username">...</span>
+                    <span class="status-text">Online</span>
+                </div>
+                <div class="plus-menu-wrapper">
+                    <button class="icon-btn" id="add-contact-btn">+</button>
+                    <span id="friend-requests-badge" class="fr-badge" style="display:none;"></span>
+                    <div id="plus-dropdown-menu" class="dropdown-menu">
+                        <button type="button" id="menu-open-create-group" class="dropdown-item">➕ Utwórz grupę</button>
+                        <button type="button" id="menu-open-join-group" class="dropdown-item">🔑 Dołącz do grupy</button>
+                        <button type="button" id="menu-open-add-friend" class="dropdown-item">🧑‍🤝‍🧑 Dodaj znajomego</button>
+                        <button type="button" id="menu-open-friend-requests" class="dropdown-item">📨 Prośby o znajomość</button>
+                    </div>
+                </div>
+            </div>
+            <div class="search-container">
+                <input type="text" placeholder="Szukaj rozmów..." class="search-input">
+            </div>
+            <div class="conversations-list" id="conversations-list">
+                <!-- Injected by JS -->
+            </div>
+        </aside>
+
+        <!-- Right Col -->
+        <main class="right-col" id="right-col">
+            <div class="chat-header">
+                <button class="mobile-back-btn" id="mobile-back-btn">← Wróć</button>
+                <div class="chat-title-info">
+                    <h3 id="chat-title">Wybierz rozmowę</h3>
+                    <div class="chat-status-row">
+                        <span class="e2ee-status" id="chat-e2ee-status"><span class="pulse-lock">🔒</span> Szyfrowanie end-to-end aktywne</span>
+                        <span class="typing-status" id="chat-typing-status">
+                            <span class="typing-dots"><span></span><span></span><span></span></span>
+                            <span id="chat-typing-name">pisze...</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="icon-btn" id="start-audio-call-btn" title="Połączenie głosowe">📞</button>
+                    <button class="icon-btn" id="start-video-call-btn" title="Połączenie wideo">🎥</button>
+                </div>
+            </div>
+            <div class="messages-container" id="messages-container">
+                <!-- Injected by JS -->
+            </div>
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <button type="button" id="attach-button" class="icon-btn" title="Wyślij zdjęcie lub film">📎</button>
+                    <input type="file" id="attach-file-input" accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime" style="display:none;">
+                    <textarea id="message-input" placeholder="Napisz zaszyfrowaną wiadomość..." rows="1" maxlength="2000"></textarea>
+                    <button type="button" id="voice-record-button" class="icon-btn" title="Nagraj wiadomość głosową">🎤</button>
+                    <button id="send-button" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="send-icon">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                        </svg>
+                    </button>
+                </div>
+                <span class="encryption-notice">Wiadomość zostanie zaszyfrowana lokalnie przed wysłaniem</span>
+            </div>
+        </main>
+    </div>
+
+    <!-- Nakładka połączeń głosowych / wideo -->
+    <div id="call-overlay" class="call-overlay">
+        <div id="call-incoming" class="call-screen" style="display:none;">
+            <img id="call-incoming-avatar" class="call-avatar" src="" alt="">
+            <h2 id="call-incoming-name"></h2>
+            <p id="call-incoming-type" class="call-subtitle"></p>
+            <div class="call-controls">
+                <button id="call-reject-btn" class="call-btn call-btn-reject" title="Odrzuć">✕</button>
+                <button id="call-accept-btn" class="call-btn call-btn-accept" title="Odbierz">📞</button>
+            </div>
+        </div>
+
+        <div id="call-outgoing" class="call-screen" style="display:none;">
+            <img id="call-outgoing-avatar" class="call-avatar" src="" alt="">
+            <h2 id="call-outgoing-name"></h2>
+            <p id="call-outgoing-type" class="call-subtitle"></p>
+            <video id="call-local-video" class="call-local-preview" autoplay playsinline></video>
+            <div class="call-controls">
+                <button id="call-cancel-btn" class="call-btn call-btn-reject" title="Anuluj">✕</button>
+            </div>
+        </div>
+
+        <div id="call-active" class="call-screen" style="display:none;">
+            <video id="call-remote-video" class="call-remote-video" autoplay playsinline></video>
+            <audio id="call-remote-audio" autoplay></audio>
+            <video id="call-local-video-active" class="call-local-preview" autoplay playsinline muted></video>
+            <p id="call-duration" class="call-subtitle">00:00</p>
+            <div class="call-controls">
+                <button id="call-mute-btn" class="call-btn" title="Wycisz mikrofon">🎙️</button>
+                <button id="call-hangup-btn" class="call-btn call-btn-reject" title="Zakończ">✕</button>
+                <button id="call-camera-btn" class="call-btn" title="Włącz/wyłącz kamerę">🎥</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals & Toasts -->
+    <div id="toast-container"></div>
+    <div id="add-contact-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <h3>Dodaj znajomego</h3>
+            <p class="modal-hint">Wyślemy prośbę o znajomość — druga osoba musi ją zaakceptować, zanim pojawicie się nawzajem w kontaktach.</p>
+            <input type="text" id="contact-username" placeholder="Nazwa użytkownika" class="modal-input">
+            <input type="text" id="contact-nickname" placeholder="Nick (opcjonalnie - Real)" class="modal-input">
+            <input type="text" id="contact-fake-nickname" placeholder="Nick (opcjonalnie - Fake)" class="modal-input">
+            <div class="modal-actions">
+                <button class="btn-cancel" id="cancel-add-contact" data-close-modal>Anuluj</button>
+                <button class="btn-primary" id="confirm-add-contact">Wyślij prośbę</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-group-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <h3>Utwórz grupę</h3>
+            <p class="modal-hint">Po utworzeniu dostaniesz kod dołączenia — podaj go razem ze swoją nazwą użytkownika osobom, które chcesz zaprosić.</p>
+            <input type="text" id="group-name-input" placeholder="Nazwa grupy" class="modal-input" maxlength="80">
+            <div class="modal-actions">
+                <button class="btn-cancel" data-close-modal>Anuluj</button>
+                <button class="btn-primary" id="confirm-create-group">Utwórz</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="join-group-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <h3>Dołącz do grupy</h3>
+            <p class="modal-hint">Podaj nazwę użytkownika twórcy grupy oraz kod, który od niego dostałeś/aś.</p>
+            <input type="text" id="join-group-username" placeholder="Nazwa użytkownika twórcy" class="modal-input">
+            <input type="text" id="join-group-code" placeholder="Kod dołączenia" class="modal-input" style="text-transform:uppercase;">
+            <div class="modal-actions">
+                <button class="btn-cancel" data-close-modal>Anuluj</button>
+                <button class="btn-primary" id="confirm-join-group">Dołącz</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="friend-requests-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card" style="text-align:left;">
+            <h3 style="text-align:center;">Prośby o znajomość</h3>
+            <div id="friend-requests-list" class="fr-list"><!-- Injected by JS --></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" data-close-modal>Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <h3>Ustawienia konta</h3>
+
+            <div class="settings-section">
+                <h4>Awatar</h4>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <img id="settings-avatar-preview" src="" alt="" style="width:64px; height:64px; border-radius:50%; object-fit:cover;">
+                    <div>
+                        <input type="file" id="avatar-file-input" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none;">
+                        <button class="btn-primary" id="avatar-choose-btn" type="button">Zmień awatar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>Historia logowań (adresy IP)</h4>
+                <div id="login-history-list" style="max-height:160px; overflow-y:auto; font-size:13px; color:#aaa;"></div>
+            </div>
+
+            <div class="settings-section">
+                <h4>Konta na tym urządzeniu</h4>
+                <div id="settings-accounts-list"></div>
+                <button class="btn-cancel" id="settings-add-account-btn" type="button" style="margin-top:8px;">+ Dodaj kolejne konto</button>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" id="settings-logout-btn" type="button">Wyloguj to konto</button>
+                <button class="btn-primary" id="close-settings-modal">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kazyno: pełnoekranowa nakładka nad czatem, przełączana przyciskiem 🎰 w lewym pasku -->
+    <div id="casino-overlay" class="casino-overlay" style="display:none;">
+        <div class="casino-header">
+            <button class="btn-cancel" id="casino-back-btn">← Wróć do czatu</button>
+            <h2 class="casino-title">🎰 Kazyno</h2>
+            <div class="casino-wallet">
+                <span class="casino-chip-icon">🪙</span>
+                <span id="casino-balance">0</span>
+                <button class="btn-primary casino-bonus-btn" id="casino-daily-bonus-btn" style="display:none;">Odbierz bonus dobowy</button>
+            </div>
+        </div>
+        <div id="casino-body" class="casino-body"><!-- Injected by JS: hub gier lub aktywna gra --></div>
+    </div>
+
+    <script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
