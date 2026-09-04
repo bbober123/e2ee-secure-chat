@@ -1,0 +1,117 @@
+/**
+ * casino/exchange.css — gra "Giełda": lista rynku, panel handlu z
+ * wykresem, portfel i historia. Ten sam motyw zielone-sukno/złoto co
+ * reszta kazyna (patrz variables.css), żeby nie wyglądało jak wklejona
+ * osobna appka.
+ */
+.exchange { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+
+.exchange-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.exchange-nav-btn {
+    background: transparent; border: 1px solid var(--casino-gold-dim); color: var(--casino-cream);
+    padding: 8px 16px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 600;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.exchange-nav-btn:hover { border-color: var(--casino-gold); }
+.exchange-nav-btn.active { background: var(--casino-gold); color: var(--casino-ink); border-color: var(--casino-gold); }
+.exchange-offline-badge { font-size: 11px; color: var(--casino-gold-dim); margin-left: auto; }
+
+.exchange-loading { text-align: center; padding: 40px; color: rgba(253,250,241,0.7); }
+.exchange-empty { text-align: center; padding: 30px; color: rgba(253,250,241,0.6); font-size: 13px; }
+
+/* --- Rynek --- */
+.exchange-search-row { display: flex; }
+.exchange-search {
+    width: 100%; max-width: 320px; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--casino-gold-dim);
+    background: rgba(0,0,0,0.3); color: var(--casino-cream); font-size: 13px;
+}
+.exchange-search:focus { outline: none; border-color: var(--casino-gold); }
+
+.exchange-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid rgba(226,185,59,0.2); }
+.exchange-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.exchange-table thead th {
+    text-align: left; padding: 10px 12px; color: var(--casino-gold-dim); font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.04em; background: rgba(0,0,0,0.25);
+}
+.exchange-table tbody tr.exchange-row { cursor: pointer; transition: background 0.12s ease; border-top: 1px solid rgba(255,255,255,0.05); }
+.exchange-table tbody tr.exchange-row:hover { background: rgba(226,185,59,0.08); }
+.exchange-table td { padding: 10px 12px; color: var(--casino-cream); vertical-align: middle; }
+.exchange-coin-cell { display: flex; align-items: center; gap: 8px; }
+.exchange-coin-name { font-weight: 600; }
+.exchange-coin-symbol { color: rgba(253,250,241,0.55); font-size: 11px; margin-left: 4px; }
+.exchange-up { color: #4ade80; font-weight: 600; }
+.exchange-down { color: var(--casino-red); font-weight: 600; }
+.exchange-spark { display: block; }
+.exchange-no-data { color: rgba(253,250,241,0.4); }
+.exchange-trade-btn { padding: 6px 14px; font-size: 12px; width: auto; }
+
+/* --- Panel handlu --- */
+.exchange-trade { display: flex; flex-direction: column; gap: 14px; }
+.exchange-back-btn { align-self: flex-start; width: auto; padding: 6px 14px; font-size: 12px; }
+.exchange-trade-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+.exchange-trade-header h4 { margin: 0; color: var(--casino-gold); font-family: Georgia, serif; font-size: 18px; }
+.exchange-trade-price-row { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; }
+.exchange-trade-price { font-size: 22px; font-weight: 700; color: var(--casino-cream); }
+.exchange-timeframes { display: flex; gap: 6px; }
+.exchange-tf-btn {
+    background: transparent; border: 1px solid var(--casino-gold-dim); color: var(--casino-cream);
+    padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+}
+.exchange-tf-btn.active { background: var(--casino-gold); color: var(--casino-ink); border-color: var(--casino-gold); }
+
+.exchange-chart-wrap {
+    width: 100%; height: 220px; background: rgba(0,0,0,0.25); border-radius: 10px;
+    border: 1px solid rgba(226,185,59,0.15); padding: 4px;
+}
+.exchange-chart-wrap canvas { width: 100%; height: 100%; display: block; }
+
+.exchange-order-panel { background: rgba(0,0,0,0.22); border: 1px solid rgba(226,185,59,0.2); border-radius: 12px; padding: 16px; }
+.exchange-order-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.exchange-order-tab {
+    flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--casino-gold-dim); background: transparent;
+    color: var(--casino-cream); cursor: pointer; font-weight: 600; font-size: 13px;
+}
+.exchange-order-tab.active.buy { background: #16a34a; border-color: #16a34a; color: white; }
+.exchange-order-tab.active.sell { background: var(--casino-red); border-color: var(--casino-red); color: white; }
+.exchange-order-form { display: flex; flex-direction: column; gap: 6px; }
+.exchange-order-form label { font-size: 11px; color: rgba(253,250,241,0.65); text-transform: uppercase; letter-spacing: 0.03em; }
+.exchange-order-form input {
+    padding: 10px 12px; border-radius: 8px; border: 1px solid var(--casino-gold-dim);
+    background: rgba(0,0,0,0.3); color: var(--casino-cream); font-size: 14px;
+}
+.exchange-order-form input:focus { outline: none; border-color: var(--casino-gold); }
+.exchange-available { font-size: 12px; color: rgba(253,250,241,0.6); }
+.exchange-order-summary { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; font-size: 12.5px; color: rgba(253,250,241,0.8); }
+.exchange-summary-row { display: flex; justify-content: space-between; }
+.exchange-summary-total { font-weight: 700; color: var(--casino-cream); border-top: 1px dashed rgba(226,185,59,0.3); padding-top: 6px; }
+.exchange-trade-error { color: var(--casino-red); font-size: 12.5px; min-height: 16px; }
+.exchange-execute-btn { width: 100%; padding: 12px; font-size: 14px; }
+
+/* --- Portfel --- */
+.exchange-portfolio-summary {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px;
+}
+.exchange-portfolio-summary > div {
+    background: rgba(0,0,0,0.22); border: 1px solid rgba(226,185,59,0.2); border-radius: 10px;
+    padding: 12px; text-align: center;
+}
+.exchange-portfolio-summary span { display: block; font-size: 11px; color: rgba(253,250,241,0.6); margin-bottom: 4px; }
+.exchange-portfolio-summary strong { color: var(--casino-gold); font-size: 15px; }
+.exchange-holdings-list { display: flex; flex-direction: column; gap: 8px; }
+.exchange-holding-row {
+    display: flex; justify-content: space-between; align-items: center; padding: 10px 12px;
+    background: rgba(0,0,0,0.2); border: 1px solid rgba(226,185,59,0.15); border-radius: 8px;
+}
+.exchange-holding-right { text-align: right; font-size: 13px; }
+
+/* --- Historia --- */
+.exchange-history-list { display: flex; flex-direction: column; gap: 6px; }
+.exchange-history-row {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+    padding: 10px 12px; background: rgba(0,0,0,0.18); border-radius: 8px; font-size: 12.5px;
+}
+.exchange-history-side { font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 5px; }
+.exchange-history-side.buy { background: rgba(22,163,74,0.2); color: #4ade80; }
+.exchange-history-side.sell { background: rgba(220,38,38,0.2); color: #f87171; }
+.exchange-history-date { color: rgba(253,250,241,0.55); font-size: 11px; }
+.exchange-history-amounts { text-align: right; }

@@ -1,0 +1,83 @@
+/**
+ * casino/responsive.css — dopasowanie kazyna do rozmiaru ekranu.
+ * Załaduj jako OSTATNI z plików casino/* (patrz kolejność <link> w index.html),
+ * z tego samego powodu co ../responsive.css: reguły tu nadpisują domyślne
+ * (desktopowe) style gier bez potrzeby !important.
+ */
+
+/* ≤900px - tablet: gry nadal w dwóch/trzech kolumnach, ale nieco ciaśniej. */
+@media (max-width: 900px) {
+    .casino-hub-grid { gap: 14px; }
+    .roulette-wheel-wrap, .roulette-wheel-spin { width: 200px; height: 200px; }
+}
+
+/* ≤720px - telefon: siatka gier w jednej kolumnie, mniejsze plansze. */
+@media (max-width: 720px) {
+    .casino-body { padding: 14px; }
+    .casino-header { padding: 10px 14px; gap: 10px; }
+    .casino-title { font-size: 17px; }
+    .casino-wallet { padding: 5px 10px; font-size: 13px; }
+
+    .casino-hub-grid { grid-template-columns: 1fr; max-width: 420px; }
+    .casino-game-card { padding: 20px 16px; }
+
+    .bj-table, .poker-table { padding: 18px 10px; border-width: 4px; }
+    .chip-btn { width: 44px; height: 44px; font-size: 11px; }
+    .bj-mp-players { gap: 12px; }
+
+    .roulette-wheel-wrap, .roulette-wheel-spin { width: 160px; height: 160px; }
+    .roulette-numbers-grid { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); }
+    .roulette-outside-bets { grid-template-columns: repeat(2, 1fr); }
+    .roulette-cell { padding: 8px 3px; font-size: 11px; }
+
+    .slots-symbol { width: 48px; height: 44px; font-size: 24px; }
+    .slots-spin-btn { padding: 12px 26px; font-size: 14px; }
+
+    .poker-bots-row { gap: 8px; }
+    .poker-seat { padding: 8px; }
+}
+
+/* ≤420px - mały telefon: absolutne minimum, jedna karta gry na raz, */
+/* mniejsze żetony i plansza ruletki tak, żeby zmieściła się bez scrolla. */
+@media (max-width: 420px) {
+    .casino-header { flex-direction: column; align-items: stretch; text-align: center; }
+    .casino-game-header { flex-wrap: wrap; justify-content: center; text-align: center; }
+
+    .roulette-wheel-wrap, .roulette-wheel-spin { width: 130px; height: 130px; }
+    .roulette-cell { font-size: 9.5px; padding: 6px 2px; }
+    .roulette-zero-cell { padding: 6px; font-size: 12px; }
+
+    .chip-btn { width: 40px; height: 40px; font-size: 10px; border-width: 2px; }
+    .bj-bet-row, .bj-action-row { gap: 6px; }
+
+    .slots-symbol { width: 40px; height: 38px; font-size: 20px; }
+    .slots-cabinet { padding: 12px; }
+
+    .poker-seat-name, .poker-seat-stack { font-size: 11px; }
+
+    .case-picker { gap: 8px; }
+    .case-picker-item { padding: 8px 10px; }
+    .case-picker-icon { font-size: 20px; }
+    .case-picker-title { font-size: 11px; }
+    .case-reel-viewport { height: 100px; }
+    .case-reel-item { width: 90px; flex-basis: 90px; }
+    .case-reel-item-icon { width: 28px; height: 28px; }
+    .case-contents-grid { grid-template-columns: repeat(2, 1fr); }
+
+    .inventory-grid { grid-template-columns: repeat(2, 1fr); }
+    .inventory-item-icon { width: 30px; height: 30px; }
+
+    .exchange-table thead th:nth-child(5), .exchange-table td:nth-child(5) { display: none; } /* wykres sparkline - za ciasno na telefonie */
+    .exchange-portfolio-summary { grid-template-columns: 1fr; }
+    .exchange-trade-price { font-size: 18px; }
+    .exchange-history-row { grid-template-columns: 1fr; text-align: left; gap: 4px; }
+    .exchange-history-amounts { text-align: left; }
+}
+
+/* Ekrany niskie w poziomie - kazyno zwykle otwierane jako pełny ekran, */
+/* więc pilnujemy żeby stół dało się przewinąć zamiast go przycinać. */
+@media (max-height: 480px) and (orientation: landscape) {
+    .casino-body { overflow-y: auto; padding: 10px 16px; }
+    .roulette-wheel-wrap, .roulette-wheel-spin { width: 120px; height: 120px; }
+    .bj-table, .poker-table { padding: 12px 10px; gap: 10px; }
+}
