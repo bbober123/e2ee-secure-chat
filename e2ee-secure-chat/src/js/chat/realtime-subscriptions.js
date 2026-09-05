@@ -8,7 +8,7 @@ import { UI } from '../ui.js';
 import { keyManager } from '../auth.js';
 import { AppState } from '../state.js';
 import { groupCrypto } from '../groups.js';
-import { saveGroupState, distributeOwnKeyTo, consumePendingKeyDistributions } from '../groupkeys.js';
+import { saveGroupState, loadGroupState, distributeOwnKeyTo, consumePendingKeyDistributions } from '../groupkeys.js';
 import { listIncomingFriendRequests } from '../friends.js';
 
 export const RealtimeSubscriptionsMixin = {
@@ -79,15 +79,29 @@ export const RealtimeSubscriptionsMixin = {
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_members' }, async (payload) => {
                 const joined = payload.new;
                 if (!joined || joined.user_id === AppState.getUser().id) return;
-                if (!groupCrypto.hasOwnChain(joined.group_id)) return; // nie mam jeszcze/w ogóle klucza dla tej grupy w tym trybie
 
                 try {
+                    // NAPRAWA: po świeżym F5 stan Sender Keys nie jest jeszcze w RAM
+                    // (ładuje się dopiero przy otwarciu rozmowy) i hasOwnChain() fałszywie zwracało
+                    // false — wtedy milczenio nie wypychaliśmy klucza nowemu członkowi. Załaduj
+                    // zaszyfrowany stan z group_sender_states, zanim podejmiesz decyzję.
+                    if (!groupCrypto.hasOwnChain(joined.group_id)) {
+                        await loadGroupState(AppState.getUser().id, joined.group_id, AppState.getMode(), groupCrypto, keyManager.passwordKey);
+                    }
+                    // Dopiero teraz "nie mam klucza" znaczy naprawdę nie mam (np. dołączono na innym urządzeniu).
+                    if (!groupCrypto.hasOwnChain(joined.group_id)) return;
+
                     await distributeOwnKeyTo(joined.group_id, AppState.getMode(), AppState.getUser().id, joined.user_id, groupCrypto, keyManager.identityVault);
                 } catch (e) {
                     console.warn('Nie udało się wypchnąć klucza grupowego nowemu członkowi', e);
                 }
 
-                this.groupMembersCache.delete(joined.group_id); // wymuś odświeżenie listy nazw przy następnym otwarciu
+                this.groupMembersCache.delete(joined.group_id); // wymuś odświeżenie listy nazw
+                // Jeśli ta grupa jest akurat otwarta, przeładuj nazwy autorów od razu.
+                if (this.activeConversation?.groupId === joined.group_id) {
+                    await this.loadGroupMembers(joined.group_id);
+                    UI.renderMessages(this.currentMessages);
+                }
             })
             .subscribe();
     },
@@ -101,6 +115,13 @@ export const RealtimeSubscriptionsMixin = {
                 const touched = await consumePendingKeyDistributions(AppState.getUser().id, AppState.getMode(), groupCrypto, keyManager.identityVault);
                 for (const groupId of touched) {
                     await saveGroupState(AppState.getUser().id, groupId, AppState.getMode(), groupCrypto, keyManager.passwordKey);
+                }
+                // NAPRAWA: wiadomości, które wcześniej padły z "nieznany łańcuch nadawczy",
+                // teraz dadzą się odszyfrować — przeładuj aktywną rozmowę, jeśli dotyczyła
+                // którejś z dotkniętych grup (nieudane deszyfrowania nie są cache'owane,
+                // więc loadMessages spróbuje ponownie i tym razem się uda).
+                if (touched.length && this.activeConversation?.isGroup && touched.includes(this.activeConversation.groupId)) {
+                    await this.loadMessages(this.activeConversation.id);
                 }
             })
             .subscribe();
