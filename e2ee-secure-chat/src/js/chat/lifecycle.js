@@ -7,8 +7,7 @@ import { UI } from '../ui.js';
 import { AuthManager, keyManager } from '../auth.js';
 import { AppState } from '../state.js';
 import { groupCrypto } from '../groups.js';
-import { saveGroupState } from '../groupkeys.js';
-import { consumePendingKeyDistributions } from '../groupkeys.js';
+import { saveGroupState, loadGroupState, consumePendingKeyDistributions } from '../groupkeys.js';
 
 export const LifecycleMixin = {
     async init() {
@@ -27,6 +26,23 @@ export const LifecycleMixin = {
             this.subscribeToFriendRequests();
             this.subscribeToGroupJoins();
             this.subscribeToKeyDistributions();
+
+            // NAPRAWA: wczytaj do RAM stany Sender Keys WSZYSTKICH moich grup. Bez tego
+            // subscribeToGroupJoins po świeżym F5 widzi pusty groupCrypto i nie reaguje na dołączenia,
+            // nawet jeśli mam zapisany stan w group_sender_states.
+            try {
+                const { data: myGroups } = await supabase.from('group_members').select('group_id').eq('user_id', AppState.getUser().id);
+                for (const row of myGroups || []) {
+                    try {
+                        await loadGroupState(AppState.getUser().id, row.group_id, AppState.getMode(), groupCrypto, keyManager.passwordKey);
+                    } catch (e) {
+                        console.warn('Nie udało się wczytać stanu grupy', row.group_id, e);
+                    }
+                }
+            } catch (e) {
+                console.warn('Nie udało się wczytać listy grup', e);
+            }
+
             await this.refreshFriendRequestsBadge();
 
             // Odbierz od razu wszystkie zaległe pakiety dystrybucji kluczy grupowych
