@@ -7,7 +7,7 @@ import { UI } from '../ui.js';
 import { keyManager } from '../auth.js';
 import { AppState } from '../state.js';
 import { groupCrypto } from '../groups.js';
-import { saveGroupState, loadGroupState, consumePendingKeyDistributions } from '../groupkeys.js';
+import { saveGroupState, loadGroupState, distributeOwnKeyTo, consumePendingKeyDistributions } from '../groupkeys.js';
 
 export const ConversationsMixin = {
     async loadConversations() {
@@ -107,13 +107,36 @@ export const ConversationsMixin = {
         if (!groupCrypto.hasOwnChain(groupId)) {
             await loadGroupState(userId, groupId, mode, groupCrypto, keyManager.passwordKey);
         }
-        if (!groupCrypto.hasOwnChain(groupId)) {
+        const hasOwnChain = groupCrypto.hasOwnChain(groupId);
+        if (!hasOwnChain) {
             console.warn('Brak lokalnego stanu Sender Keys dla tej grupy (dołączono na innym urządzeniu?) - wysyłanie będzie niedostępne.');
         }
 
         const touched = await consumePendingKeyDistributions(userId, mode, groupCrypto, keyManager.identityVault);
         if (touched.length) {
             for (const gId of touched) await saveGroupState(userId, gId, mode, groupCrypto, keyManager.passwordKey);
+        }
+
+        // NAPRAWA — samonaprawa dystrybucji kluczy: jeśli dołączyłem do grupy, gdy inni
+        // członkowie byli offline, Realtime NIE odtworzy ich zdarzenia INSERT i nigdy nie dostanę
+        // od nich klucza. Przy KAŻDYM otwarciu grupy wypycham więc swój bieżący łańcuch do
+        // wszystkich członków. Jest to idempotentne: guard w setMemberChain (groupkeys.js) odrzuca
+        // pakiety ze starszą lub równą iteracją, więc powtórki są nieszkodliwe. W efekcie grupa
+        // naprawia się sama po jednym cyklu "każdy członek raz otworzy grupę".
+        if (hasOwnChain) {
+            try {
+                const members = await this.loadGroupMembers(groupId);
+                for (const memberId of members.keys()) {
+                    if (memberId === userId) continue;
+                    try {
+                        await distributeOwnKeyTo(groupId, mode, userId, memberId, groupCrypto, keyManager.identityVault);
+                    } catch (e) {
+                        console.warn('Nie udało się odświeżyć dystrybucji klucza do członka', memberId, e);
+                    }
+                }
+            } catch (e) {
+                console.warn('Nie udało się odświeżyć dystrybucji kluczy grupowych', e);
+            }
         }
     },
 
